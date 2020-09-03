@@ -1,0 +1,68 @@
+- name: Install ESP-IDF to all targets
+  hosts: pis
+  gather_facts: no
+  tasks:
+    - name: Update the cache and all packages
+      become: yes
+      pacman:
+        update_cache: yes
+        upgrade: yes
+      tags: packages
+
+    - name: Install Arch Linux prerequisites
+      become: yes
+      pacman:
+        name:
+          - gcc
+          - git
+          - make
+          - flex
+          - bison
+          - gperf
+          - python-pip
+          - cmake
+          - ninja
+          - ccache
+          - dfu-util
+        state: present
+      tags: packages
+
+    - name: Add alarm to uucp group for serial port access
+      become: yes
+      user:
+        name: alarm
+        append: yes
+        groups: uucp
+      tags: configuration
+
+    - name: Pull the ESP-IDF git repository
+      git:
+        repo: https://github.com/espressif/esp-idf.git
+        dest: /home/alarm/esp-idf
+        version: v4.3-dev
+        force: yes
+      tags: idf
+
+    - name: Add Linux-armv6l as an ARM32 platform
+      lineinfile:
+        path: /home/alarm/esp-idf/tools/idf_tools.py
+        insertafter: "    'Linux-arm': PLATFORM_LINUX_ARM32,"
+        line: "    'Linux-armv6l': PLATFORM_LINUX_ARM32,"
+      tags: idf
+
+    - name: Set up the ESP-IDF tools
+      shell: /home/alarm/esp-idf/install.sh
+      tags: idf
+
+    - name: Disable slow Python package version check
+      lineinfile:
+        path: /home/alarm/esp-idf/export.sh
+        regexp: 'check_python_dependencies'
+        state: absent
+      tags: idf
+
+    - name: Source ESP-IDF on login
+      lineinfile:
+        path: /home/alarm/.bashrc
+        line: "source /home/alarm/esp-idf/export.sh"
+      tags: configuration

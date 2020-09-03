@@ -1,0 +1,4 @@
+ansible_user: alarm
+ansible_ssh_pass: alarm
+ansible_become_pass: root
+ansible_become_method: su
