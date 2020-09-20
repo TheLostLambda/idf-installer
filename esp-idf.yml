@@ -39,7 +39,6 @@
       git:
         repo: https://github.com/espressif/esp-idf.git
         dest: /home/alarm/esp-idf
-        version: v4.3-dev
         force: yes
       tags: idf
 
